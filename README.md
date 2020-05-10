@@ -23,7 +23,7 @@ adaptor.HTTPHandlerFunc(handler func(*fiber.Ctx)) http.HandlerFunc
 | HTTPHandler | `HTTPHandler(h func(*fiber.Ctx)) http.Handler` | Fiber handler to net/http handler wrapper
 | HTTPHandlerFunc | `HTTPHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc` | Fiber handler to net/http handler func wrapper
 
-### net/http to Fiber
+### net/http -> Fiber
 ```go
 package main
 
@@ -49,7 +49,7 @@ func main() {
 
 ```
 
-### Fiber to net/http
+### Fiber -> net/http
 ```go
 package main
 
