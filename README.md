@@ -35,16 +35,22 @@ import (
 	"github.com/gofiber/fiber"
 )
 
-func greet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello World!")
-}
-
 func main() {
+	// New fiber app
 	app := fiber.New()
 
+	// http.Handler -> func(*fiber.Ctx)
 	app.Get("/", adaptor.FiberHandler(greet))
 
+	// http.HandlerFunc -> func(*fiber.Ctx)
+	app.Get("/", adaptor.FiberHandlerFunc(greet))
+
+	// Listen on port 3000
 	app.Listen(3000)
+}
+
+func greet(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Hello World!")
 }
 
 ```
