@@ -62,7 +62,7 @@ import (
 
 func main() {
 	http.Handle("/", adaptor.NewHTTPHandlerFiber(func(c *fiber.Ctx) {
-		c.SendString("Hello World!")
+		c.Send("Hello World!")
 	}))
 
 	http.ListenAndServe(":3000", nil)
