@@ -10,6 +10,14 @@ import (
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
+// NewFiberHandlerFunc wraps net/http handler to fiber handler
+func NewFiberHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx) {
+	return func(c *fiber.Ctx) {
+		handler := fasthttpadaptor.NewFastHTTPHandler(h)
+		handler(c.Fasthttp)
+	}
+}
+
 // NewFiberHandler wraps net/http handler to fiber handler
 func NewFiberHandler(h http.Handler) func(*fiber.Ctx) {
 	return func(c *fiber.Ctx) {
