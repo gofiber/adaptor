@@ -1,4 +1,4 @@
-### Proxy
+### Adaptor
 Converter for net/http handlers to/from Fiber request handlers
 
 ### Install
