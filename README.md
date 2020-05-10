@@ -9,17 +9,19 @@ go get -u github.com/gofiber/adaptor
 
 ### Signature
 ```go
-adaptor.NewFiberHandler(h http.Handler) func(*fiber.Ctx)
-adaptor.NewHTTPHandlerFiber(handler func(*fiber.Ctx)) http.Handler
-adaptor.NewHTTPHandlerFasthttp(handler fasthttp.RequestHandler) http.Handler
+adaptor.FiberHandler(h http.Handler) func(*fiber.Ctx)
+adaptor.FiberHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx)
+adaptor.HTTPHandler(h func(*fiber.Ctx)) http.Handler
+adaptor.HTTPHandlerFunc(handler func(*fiber.Ctx)) http.HandlerFunc
 ```
 
 ### Functions
 | Name | Signature | Description
 | :--- | :--- | :---
-| NewFiberHandler | `NewFiberHandler(h http.Handler) func(*fiber.Ctx)` | net/http handler to Fiber handler wrapper
-| NewHTTPHandlerFiber | `NewHTTPHandlerFiber(handler func(*fiber.Ctx)) http.Handler` | Fiber handler to net/http handler wrapper
-| NewHTTPHandlerFasthttp | `NewHTTPHandlerFasthttp(handler fasthttp.RequestHandler) http.Handler` | fasthttp handler to net/http handler wrapper
+| FiberHandler | `FiberHandler(h http.Handler) func(*fiber.Ctx)` | net/http handler to Fiber handler wrapper
+| FiberHandlerFunc | `FiberHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx)` | net/http handler func to Fiber handler wrapper
+| HTTPHandler | `HTTPHandler(h func(*fiber.Ctx)) http.Handler` | Fiber handler to net/http handler wrapper
+| HTTPHandlerFunc | `HTTPHandlerFunc(handler func(*fiber.Ctx)) http.HandlerFunc` | Fiber handler to net/http handler func wrapper
 
 ### net/http to Fiber
 ```go
@@ -57,24 +59,6 @@ import (
 func main() {
 	http.Handle("/", adaptor.NewHTTPHandlerFiber(func (c *fiber.Ctx) {
         c.SendString("Hello World!")
-    }))
-	http.ListenAndServe(":8080", nil)
-}
-```
-
-### fasthttp to net/http
-```go
-package main
-
-import (
-    "net/http"
-	"github.com/valyala/fasthttp"
-	"github.com/gofiber/adaptor"
-)
-
-func main() {
-    http.Handle("/", adaptor.NewHTTPHandlerFasthttp(func(ctx *RequestCtx) {
-        ctx.SetBodyString("Hello World!")
     }))
 	http.ListenAndServe(":8080", nil)
 }
