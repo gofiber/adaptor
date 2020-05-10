@@ -21,7 +21,7 @@ adaptor.HTTPHandlerFunc(handler func(*fiber.Ctx)) http.HandlerFunc
 | FiberHandler | `FiberHandler(h http.Handler) func(*fiber.Ctx)` | net/http handler to Fiber handler wrapper
 | FiberHandlerFunc | `FiberHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx)` | net/http handler func to Fiber handler wrapper
 | HTTPHandler | `HTTPHandler(h func(*fiber.Ctx)) http.Handler` | Fiber handler to net/http handler wrapper
-| HTTPHandlerFunc | `HTTPHandlerFunc(handler func(*fiber.Ctx)) http.HandlerFunc` | Fiber handler to net/http handler func wrapper
+| HTTPHandlerFunc | `HTTPHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc` | Fiber handler to net/http handler func wrapper
 
 ### net/http to Fiber
 ```go
