@@ -54,23 +54,27 @@ func main() {
 package main
 
 import (
-	"net/http"
+    "net/http"
 
-	"github.com/gofiber/adaptor"
-	"github.com/gofiber/fiber"
+    "github.com/gofiber/adaptor"
+    "github.com/gofiber/fiber"
 )
 
 func main() {
-	http.Handle("/", adaptor.HTTPHandler(func(c *fiber.Ctx) {
-		c.Send("Hello World!")
-	}))
+    // func(c *fiber.Ctx) -> http.HandlerFunc
+    http.HandlerFunc("/", adaptor.HTTPHandlerFunc(greet))
 
-	http.HandlerFunc("/", adaptor.HTTPHandlerFunc(greet))
-
-	http.ListenAndServe(":3000", nil)
+    // func(c *fiber.Ctx) -> http.Handler
+    http.Handle("/", adaptor.HTTPHandler(greet))
+    http.Handle("/", adaptor.HTTPHandler(func(c *fiber.Ctx) {
+        c.Send("Hello World!")
+    }))
+    
+    // Listen on port 3000
+    http.ListenAndServe(":3000", nil)
 }
 
 func greet(c *fiber.Ctx) {
-	c.Send("Hello World!")
+    c.Send("Hello World!")
 }
 ```
