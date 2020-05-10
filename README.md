@@ -65,7 +65,12 @@ func main() {
 		c.Send("Hello World!")
 	}))
 
+	http.HandlerFunc("/", adaptor.HTTPHandlerFunc(greet))
+
 	http.ListenAndServe(":3000", nil)
 }
 
+func greet(c *fiber.Ctx) {
+	c.Send("Hello World!")
+}
 ```
