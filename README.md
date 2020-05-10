@@ -42,7 +42,7 @@ func greet(w http.ResponseWriter, r *http.Request) {
 func main() {
 	app := fiber.New()
 
-	app.Get("/", adaptor.NewFiberHandlerFunc(greet))
+	app.Get("/", adaptor.FiberHandler(greet))
 
 	app.Listen(3000)
 }
@@ -61,7 +61,7 @@ import (
 )
 
 func main() {
-	http.Handle("/", adaptor.NewHTTPHandlerFiber(func(c *fiber.Ctx) {
+	http.Handle("/", adaptor.HTTPHandler(func(c *fiber.Ctx) {
 		c.Send("Hello World!")
 	}))
 
