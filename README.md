@@ -15,7 +15,7 @@ adaptor.HTTPHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx)
 
 // Fiber -> net/http
 adaptor.FiberHandler(h func(*fiber.Ctx)) http.Handler
-adaptor.FiberHandlerFunc(handler func(*fiber.Ctx)) http.HandlerFunc
+adaptor.FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc
 ```
 
 ### Functions
