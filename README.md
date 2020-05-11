@@ -23,10 +23,10 @@ adaptor.FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc
 ### Functions
 | Name | Signature | Description
 | :--- | :--- | :---
-| HTTPHandler | `HTTPHandler(h http.Handler) func(*fiber.Ctx)` | net/http handler to Fiber handler wrapper
-| HTTPHandlerFunc | `HTTPHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx)` | net/http handler func to Fiber handler wrapper
-| FiberHandler | `FiberHandler(h func(*fiber.Ctx)) http.Handler` | Fiber handler to net/http handler wrapper
-| FiberHandlerFunc | `FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc` | Fiber handler to net/http handler func wrapper
+| HTTPHandler | `HTTPHandler(h http.Handler) func(*fiber.Ctx)` | http.Handler -> Fiber handler
+| HTTPHandlerFunc | `HTTPHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx)` | http.HandlerFunc -> Fiber handler
+| FiberHandler | `FiberHandler(h func(*fiber.Ctx)) http.Handler` | Fiber handler -> http.Handler
+| FiberHandlerFunc | `FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc` | Fiber handler -> http.HandlerFunc
 
 ### net/http to Fiber
 ```go
