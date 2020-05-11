@@ -1,7 +1,5 @@
 ### Adaptor
-Converter for net/http handlers to/from Fiber request handlers
-
-Special thanks to [@arsmn](https://github.com/arsmn)!
+Converter for net/http handlers to/from Fiber request handlers, special thanks to [@arsmn](https://github.com/arsmn)!
 
 ### Install
 ```
