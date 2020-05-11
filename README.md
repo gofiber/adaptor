@@ -65,7 +65,7 @@ func main() {
 	// func(c *fiber.Ctx) -> http.Handler
 	http.Handle("/", adaptor.FiberHandler(greet))
 
-  // func(c *fiber.Ctx) -> http.HandlerFunc
+  	// func(c *fiber.Ctx) -> http.HandlerFunc
 	http.HandleFunc("/func", adaptor.FiberHandlerFunc(greet))
 
 	// Listen on port 3000
