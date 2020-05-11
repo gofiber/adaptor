@@ -65,13 +65,12 @@ func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 		defer fiber.ReleaseCtx(ctx)
 		h(ctx)
 
-		resp := &fctx.Response
-		w.WriteHeader(resp.StatusCode())
-		resp.Header.VisitAll(func(k, v []byte) {
+		w.WriteHeader(ctx.Fasthttp.Response.StatusCode())
+		ctx.Fasthttp.Response.Header.VisitAll(func(k, v []byte) {
 			sk := string(k)
 			sv := string(v)
 			w.Header().Add(sk, sv)
 		})
-		w.Write(resp.Body())
+		w.Write(ctx.Fasthttp.Response.Body())
 	})
 }
