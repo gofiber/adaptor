@@ -1,6 +1,8 @@
 ### Adaptor
 Converter for net/http handlers to/from Fiber request handlers
 
+Special thanks to @arsmn!
+
 ### Install
 ```
 go get -u github.com/gofiber/fiber
