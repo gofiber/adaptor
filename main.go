@@ -11,12 +11,12 @@ import (
 )
 
 // FiberHandlerFunc wraps net/http handler func to fiber handler
-func FiberHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx) {
-	return FiberHandler(h)
+func HTTPHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx) {
+	return HTTPHandler(h)
 }
 
 // FiberHandler wraps net/http handler to fiber handler
-func FiberHandler(h http.Handler) func(*fiber.Ctx) {
+func HTTPHandler(h http.Handler) func(*fiber.Ctx) {
 	return func(c *fiber.Ctx) {
 		handler := fasthttpadaptor.NewFastHTTPHandler(h)
 		handler(c.Fasthttp)
@@ -24,12 +24,12 @@ func FiberHandler(h http.Handler) func(*fiber.Ctx) {
 }
 
 // HTTPHandler wraps fiber handler to net/http handler
-func HTTPHandler(h func(*fiber.Ctx)) http.Handler {
-	return HTTPHandlerFunc(h)
+func FiberHandler(h func(*fiber.Ctx)) http.Handler {
+	return FiberHandlerFunc(h)
 }
 
 // HTTPHandlerFunc wraps fiber handler to net/http handler func
-func HTTPHandlerFunc(handler func(*fiber.Ctx)) http.HandlerFunc {
+func FiberHandlerFunc(handler func(*fiber.Ctx)) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var ctx fasthttp.RequestCtx
 		var req fasthttp.Request
