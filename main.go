@@ -59,6 +59,10 @@ func FiberHandlerFunc(handler func(*fiber.Ctx)) http.HandlerFunc {
 			return
 		}
 		ctx.Init(&req, remoteAddr, nil)
+		
+		handler(&fiber.Ctx{
+			Fasthttp: &ctx,
+		})
 
 		resp := &ctx.Response
 		w.WriteHeader(resp.StatusCode())
