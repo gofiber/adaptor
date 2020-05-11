@@ -40,7 +40,7 @@ func main() {
 	app := fiber.New()
 
 	// http.Handler -> func(*fiber.Ctx)
-	app.Get("/", adaptor.FiberHandler(greet))
+	app.Get("/", adaptor.FiberHandler(handler(greet)))
 
 	// http.HandlerFunc -> func(*fiber.Ctx)
 	app.Get("/", adaptor.FiberHandlerFunc(greet))
@@ -49,10 +49,13 @@ func main() {
 	app.Listen(3000)
 }
 
+func handler(f http.HandlerFunc) http.Handler {
+	return http.HandlerFunc(f)
+}
+
 func greet(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Hello World!")
 }
-
 ```
 
 ### Fiber to net/http
