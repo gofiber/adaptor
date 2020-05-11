@@ -31,9 +31,9 @@ func FiberHandler(h func(*fiber.Ctx)) http.Handler {
 // FiberHandlerFunc wraps fiber handler to net/http handler func
 func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var fctx fasthttp.RequestCtx
+		// New fasthttp request
 		var req fasthttp.Request
-
+		// Convert net/http -> fasthttp request
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w,
@@ -53,18 +53,20 @@ func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 		req.BodyWriter().Write(body)
 		remoteAddr, err := net.ResolveTCPAddr("tcp", r.RemoteAddr)
 		if err != nil {
-			http.Error(w,
-				http.StatusText(http.StatusInternalServerError),
-				http.StatusInternalServerError)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
+		// New fasthttp Ctx
+		var fctx fasthttp.RequestCtx
 		fctx.Init(&req, remoteAddr, nil)
-
+		// New fiber Ctx
 		ctx := fiber.AcquireCtx(&fctx)
 		defer fiber.ReleaseCtx(ctx)
+		// Execute fiber Ctx
 		h(ctx)
 
+		// Convert fasthttp Ctx > net/http
 		w.WriteHeader(ctx.Fasthttp.Response.StatusCode())
 		ctx.Fasthttp.Response.Header.VisitAll(func(k, v []byte) {
 			sk := string(k)
