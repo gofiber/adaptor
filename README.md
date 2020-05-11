@@ -9,17 +9,6 @@ go get -u github.com/gofiber/fiber
 go get -u github.com/gofiber/adaptor
 ```
 
-### Signature
-```go
-// net/http -> Fiber
-adaptor.HTTPHandler(h http.Handler) func(*fiber.Ctx)
-adaptor.HTTPHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx)
-
-// Fiber -> net/http
-adaptor.FiberHandler(h func(*fiber.Ctx)) http.Handler
-adaptor.FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc
-```
-
 ### Functions
 | Name | Signature | Description
 | :--- | :--- | :---
