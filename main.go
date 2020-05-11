@@ -10,12 +10,12 @@ import (
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
-// FiberHandlerFunc wraps net/http handler func to fiber handler
+// HTTPHandlerFunc wraps net/http handler func to fiber handler
 func HTTPHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx) {
 	return HTTPHandler(h)
 }
 
-// FiberHandler wraps net/http handler to fiber handler
+// HTTPHandler wraps net/http handler to fiber handler
 func HTTPHandler(h http.Handler) func(*fiber.Ctx) {
 	return func(c *fiber.Ctx) {
 		handler := fasthttpadaptor.NewFastHTTPHandler(h)
@@ -23,15 +23,15 @@ func HTTPHandler(h http.Handler) func(*fiber.Ctx) {
 	}
 }
 
-// HTTPHandler wraps fiber handler to net/http handler
+// FiberHandler wraps fiber handler to net/http handler
 func FiberHandler(h func(*fiber.Ctx)) http.Handler {
 	return FiberHandlerFunc(h)
 }
 
-// HTTPHandlerFunc wraps fiber handler to net/http handler func
-func FiberHandlerFunc(handler func(*fiber.Ctx)) http.HandlerFunc {
+// FiberHandlerFunc wraps fiber handler to net/http handler func
+func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var ctx fasthttp.RequestCtx
+		var fctx fasthttp.RequestCtx
 		var req fasthttp.Request
 
 		body, err := ioutil.ReadAll(r.Body)
@@ -58,13 +58,14 @@ func FiberHandlerFunc(handler func(*fiber.Ctx)) http.HandlerFunc {
 				http.StatusInternalServerError)
 			return
 		}
-		ctx.Init(&req, remoteAddr, nil)
-		
-		handler(&fiber.Ctx{
-			Fasthttp: &ctx,
-		})
 
-		resp := &ctx.Response
+		fctx.Init(&req, remoteAddr, nil)
+
+		ctx := fiber.AcquireCtx(&fctx)
+		defer fiber.ReleaseCtx(ctx)
+		h(ctx)
+
+		resp := &fctx.Response
 		w.WriteHeader(resp.StatusCode())
 		resp.Header.VisitAll(func(k, v []byte) {
 			sk := string(k)

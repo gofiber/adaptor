@@ -35,7 +35,7 @@ func main() {
 	app.Get("/", adaptor.HTTPHandler(handler(greet)))
 
 	// http.HandlerFunc -> func(*fiber.Ctx)
-	app.Get("/", adaptor.HTTPHandlerFunc(greet))
+	app.Get("/func", adaptor.HTTPHandlerFunc(greet))
 
 	// Listen on port 3000
 	app.Listen(3000)
@@ -62,11 +62,11 @@ import (
 )
 
 func main() {
-	// func(c *fiber.Ctx) -> http.HandlerFunc
-	http.HandleFunc("/", adaptor.FiberHandlerFunc(greet))
-
 	// func(c *fiber.Ctx) -> http.Handler
 	http.Handle("/", adaptor.FiberHandler(greet))
+
+  // func(c *fiber.Ctx) -> http.HandlerFunc
+	http.HandleFunc("/func", adaptor.FiberHandlerFunc(greet))
 
 	// Listen on port 3000
 	http.ListenAndServe(":3000", nil)
