@@ -16,7 +16,6 @@ import (
 
 	"github.com/gofiber/fiber"
 	"github.com/valyala/fasthttp"
-	"golang.org/x/net/context"
 )
 
 func Test_HTTPHandler(t *testing.T) {
@@ -161,8 +160,6 @@ func Test_FiberHandlerFunc(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
-	expectedContextKey := "contextKey"
-	expectedContextValue := "contextValue"
 
 	callsCount := 0
 	fiberH := func(c *fiber.Ctx) {
@@ -180,9 +177,10 @@ func Test_FiberHandlerFunc(t *testing.T) {
 		if c.Hostname() != expectedHost {
 			t.Fatalf("unexpected host %q. Expecting %q", c.Hostname(), expectedHost)
 		}
-		// if c.IP() != expectedRemoteAddr {
-		// 	t.Fatalf("unexpected remoteAddr %q. Expecting %q", c.IP(), expectedRemoteAddr)
-		// }
+		remoteAddr := c.Fasthttp.RemoteAddr().String()
+		if remoteAddr != expectedRemoteAddr {
+			t.Fatalf("unexpected remoteAddr %q. Expecting %q", remoteAddr, expectedRemoteAddr)
+		}
 		body := c.Body()
 		if body != expectedBody {
 			t.Fatalf("unexpected body %q. Expecting %q", body, expectedBody)
@@ -190,9 +188,6 @@ func Test_FiberHandlerFunc(t *testing.T) {
 		if c.OriginalURL() != expectedURL.String() {
 			t.Fatalf("unexpected URL: %#v. Expecting %#v", c.OriginalURL(), expectedURL)
 		}
-		// if c.Locals(expectedContextKey) != expectedContextValue {
-		// 	t.Fatalf("unexpected context value for key %q. Expecting %q", expectedContextKey, expectedContextValue)
-		// }
 
 		for k, expectedV := range expectedHeader {
 			v := c.Get(k)
@@ -207,7 +202,6 @@ func Test_FiberHandlerFunc(t *testing.T) {
 		c.Write(fmt.Sprintf("request body is %q", body))
 	}
 	nethttpH := FiberHandlerFunc(fiberH)
-	nethttpH = setHTTPContextValueMiddleware(nethttpH, expectedContextKey, expectedContextValue)
 
 	var r http.Request
 
@@ -247,13 +241,6 @@ func setFiberContextValueMiddleware(next func(*fiber.Ctx), key string, value int
 		c.Locals(key, value)
 		next(c)
 	}
-}
-
-func setHTTPContextValueMiddleware(next http.Handler, key string, value interface{}) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), key, value)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
 }
 
 type netHTTPBody struct {
