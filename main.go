@@ -34,6 +34,7 @@ func FiberHandler(h func(*fiber.Ctx)) http.Handler {
 
 // FiberHandlerFunc wraps fiber handler to net/http handler func
 func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
+	app := fiber.New()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// New fasthttp request
 		var req fasthttp.Request
@@ -65,8 +66,7 @@ func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 		var fctx fasthttp.RequestCtx
 		fctx.Init(&req, remoteAddr, nil)
 		// New fiber Ctx
-		ctx := fiber.AcquireCtx(&fctx)
-		defer fiber.ReleaseCtx(ctx)
+		ctx := app.AcquireCtx(&fctx)
 		// Execute fiber Ctx
 		h(ctx)
 
@@ -78,5 +78,6 @@ func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 			w.Header().Add(sk, sv)
 		})
 		w.Write(ctx.Fasthttp.Response.Body())
+		app.ReleaseCtx(ctx)
 	})
 }
