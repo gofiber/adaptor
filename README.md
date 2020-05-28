@@ -1,5 +1,7 @@
 # Adaptor
 
+![Release](https://img.shields.io/github/release/gofiber/adaptor.svg)
+[![Discord](https://img.shields.io/badge/discord-join%20channel-7289DA)](https://gofiber.io/discord)
 ![Test](https://github.com/gofiber/adaptor/workflows/Test/badge.svg)
 ![Security](https://github.com/gofiber/adaptor/workflows/Security/badge.svg)
 ![Linter](https://github.com/gofiber/adaptor/workflows/Linter/badge.svg)
