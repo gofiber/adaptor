@@ -118,9 +118,9 @@ func Test_HTTPHandler(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 	fctx.Init(&req, remoteAddr, nil)
-
-	ctx := fiber.AcquireCtx(&fctx)
-	defer fiber.ReleaseCtx(ctx)
+	app := fiber.New()
+	ctx := app.AcquireCtx(&fctx)
+	defer app.ReleaseCtx(ctx)
 
 	fiberH(ctx)
 

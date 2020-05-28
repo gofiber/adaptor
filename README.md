@@ -1,4 +1,9 @@
-### Adaptor
+# Adaptor
+
+![Test](https://github.com/gofiber/adaptor/workflows/Test/badge.svg)
+![Security](https://github.com/gofiber/adaptor/workflows/Security/badge.svg)
+![Linter](https://github.com/gofiber/adaptor/workflows/Linter/badge.svg)
+
 Converter for net/http handlers to/from Fiber request handlers, special thanks to [@arsmn](https://github.com/arsmn)!
 
 ### Install
