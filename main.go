@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber"
+	"github.com/gofiber/utils"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
@@ -37,13 +38,12 @@ func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 	app := fiber.New()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// New fasthttp request
-		var req fasthttp.Request
+		req := fasthttp.AcquireRequest()
+		defer fasthttp.ReleaseRequest(req)
 		// Convert net/http -> fasthttp request
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w,
-				http.StatusText(http.StatusInternalServerError),
-				http.StatusInternalServerError)
+			http.Error(w, utils.StatusMessage(fiber.StatusInternalServerError), fiber.StatusInternalServerError)
 			return
 		}
 		req.Header.SetMethod(r.Method)
@@ -58,25 +58,23 @@ func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 		_, _ = req.BodyWriter().Write(body)
 		remoteAddr, err := net.ResolveTCPAddr("tcp", r.RemoteAddr)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			http.Error(w, utils.StatusMessage(fiber.StatusInternalServerError), fiber.StatusInternalServerError)
 			return
 		}
 
 		// New fasthttp Ctx
 		var fctx fasthttp.RequestCtx
-		fctx.Init(&req, remoteAddr, nil)
+		fctx.Init(req, remoteAddr, nil)
 		// New fiber Ctx
 		ctx := app.AcquireCtx(&fctx)
+		defer app.ReleaseCtx(ctx)
 		// Execute fiber Ctx
 		h(ctx)
 		// Convert fasthttp Ctx > net/http
 		ctx.Fasthttp.Response.Header.VisitAll(func(k, v []byte) {
-			sk := string(k)
-			sv := string(v)
-			w.Header().Add(sk, sv)
+			w.Header().Add(string(k), string(v))
 		})
 		w.WriteHeader(ctx.Fasthttp.Response.StatusCode())
 		_, _ = w.Write(ctx.Fasthttp.Response.Body())
-		app.ReleaseCtx(ctx)
 	})
 }
