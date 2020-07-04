@@ -72,7 +72,7 @@ func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 		h(ctx)
 		// Convert fasthttp Ctx > net/http
 		ctx.Fasthttp.Response.Header.VisitAll(func(k, v []byte) {
-			w.Header().Add(string(k), string(v))
+			w.Header().Set(string(k), string(v))
 		})
 		w.WriteHeader(ctx.Fasthttp.Response.StatusCode())
 		_, _ = w.Write(ctx.Fasthttp.Response.Body())
