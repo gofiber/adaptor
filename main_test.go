@@ -98,7 +98,7 @@ func Test_HTTPHandler(t *testing.T) {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "request body is %q", body)
 	}
-	fiberH := HTTPHandlerFunc(nethttpH)
+	fiberH := HTTPHandler(http.HandlerFunc(nethttpH))
 	fiberH = setFiberContextValueMiddleware(fiberH, expectedContextKey, expectedContextValue)
 
 	var fctx fasthttp.RequestCtx
@@ -268,6 +268,101 @@ func Test_FiberHandler_RequestNilBody(t *testing.T) {
 	nethttpH.ServeHTTP(&w, &r)
 
 	expectedResponseBody := "request body is nil"
+	if string(w.body) != expectedResponseBody {
+		t.Fatalf("unexpected response body %q. Expecting %q", string(w.body), expectedResponseBody)
+	}
+}
+
+func Test_FiberApp(t *testing.T) {
+	expectedMethod := fiber.MethodPost
+	expectedRequestURI := "/foo/bar?baz=123"
+	expectedBody := "body 123 foo bar baz"
+	expectedContentLength := len(expectedBody)
+	expectedHost := "foobar.com"
+	expectedRemoteAddr := "1.2.3.4:6789"
+	expectedHeader := map[string]string{
+		"Foo-Bar":         "baz",
+		"Abc":             "defg",
+		"XXX-Remote-Addr": "123.43.4543.345",
+	}
+	expectedURL, err := url.ParseRequestURI(expectedRequestURI)
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	callsCount := 0
+	fiberH := func(c *fiber.Ctx) {
+		callsCount++
+		if c.Method() != expectedMethod {
+			t.Fatalf("unexpected method %q. Expecting %q", c.Method(), expectedMethod)
+		}
+		if string(c.Fasthttp.RequestURI()) != expectedRequestURI {
+			t.Fatalf("unexpected requestURI %q. Expecting %q", string(c.Fasthttp.RequestURI()), expectedRequestURI)
+		}
+		contentLength := c.Fasthttp.Request.Header.ContentLength()
+		if contentLength != expectedContentLength {
+			t.Fatalf("unexpected contentLength %d. Expecting %d", contentLength, expectedContentLength)
+		}
+		if c.Hostname() != expectedHost {
+			t.Fatalf("unexpected host %q. Expecting %q", c.Hostname(), expectedHost)
+		}
+		remoteAddr := c.Fasthttp.RemoteAddr().String()
+		if remoteAddr != expectedRemoteAddr {
+			t.Fatalf("unexpected remoteAddr %q. Expecting %q", remoteAddr, expectedRemoteAddr)
+		}
+		body := c.Body()
+		if body != expectedBody {
+			t.Fatalf("unexpected body %q. Expecting %q", body, expectedBody)
+		}
+		if c.OriginalURL() != expectedURL.String() {
+			t.Fatalf("unexpected URL: %#v. Expecting %#v", c.OriginalURL(), expectedURL)
+		}
+
+		for k, expectedV := range expectedHeader {
+			v := c.Get(k)
+			if v != expectedV {
+				t.Fatalf("unexpected header value %q for key %q. Expecting %q", v, k, expectedV)
+			}
+		}
+
+		c.Set("Header1", "value1")
+		c.Set("Header2", "value2")
+		c.Status(fiber.StatusBadRequest)
+		c.Write(fmt.Sprintf("request body is %q", body))
+	}
+
+	app := fiber.New()
+	app.Post("/foo/bar", fiberH)
+	nethttpH := FiberApp(app)
+
+	var r http.Request
+
+	r.Method = expectedMethod
+	r.Body = &netHTTPBody{[]byte(expectedBody)}
+	r.RequestURI = expectedRequestURI
+	r.ContentLength = int64(expectedContentLength)
+	r.Host = expectedHost
+	r.RemoteAddr = expectedRemoteAddr
+
+	hdr := make(http.Header)
+	for k, v := range expectedHeader {
+		hdr.Set(k, v)
+	}
+	r.Header = hdr
+
+	var w netHTTPResponseWriter
+	nethttpH.ServeHTTP(&w, &r)
+
+	if w.StatusCode() != http.StatusBadRequest {
+		t.Fatalf("unexpected statusCode: %d. Expecting %d", w.StatusCode(), http.StatusBadRequest)
+	}
+	if w.Header().Get("Header1") != "value1" {
+		t.Fatalf("unexpected header value: %q. Expecting %q", w.Header().Get("Header1"), "value1")
+	}
+	if w.Header().Get("Header2") != "value2" {
+		t.Fatalf("unexpected header value: %q. Expecting %q", w.Header().Get("Header2"), "value2")
+	}
+	expectedResponseBody := fmt.Sprintf("request body is %q", expectedBody)
 	if string(w.body) != expectedResponseBody {
 		t.Fatalf("unexpected response body %q. Expecting %q", string(w.body), expectedResponseBody)
 	}
