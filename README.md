@@ -21,6 +21,7 @@ go get -u github.com/gofiber/adaptor
 | HTTPHandlerFunc | `HTTPHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx)` | http.HandlerFunc -> Fiber handler
 | FiberHandler | `FiberHandler(h func(*fiber.Ctx)) http.Handler` | Fiber handler -> http.Handler
 | FiberHandlerFunc | `FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc` | Fiber handler -> http.HandlerFunc
+| FiberApp | `FiberApp(app *fiber.App) http.HandlerFunc` | Fiber app -> http.HandlerFunc
 
 ### net/http to Fiber
 ```go
@@ -57,7 +58,7 @@ func greet(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-### Fiber to net/http
+### Fiber Handler to net/http
 ```go
 package main
 
@@ -77,6 +78,29 @@ func main() {
 
 	// Listen on port 3000
 	http.ListenAndServe(":3000", nil)
+}
+
+func greet(c *fiber.Ctx) {
+	c.Send("Hello World!")
+}
+```
+
+### Fiber App to net/http
+```go
+package main
+
+import (
+	"github.com/gofiber/adaptor"
+	"github.com/gofiber/fiber"
+	"net/http"
+)
+func main() {
+	app := fiber.New()
+
+	app.Get("/greet", greet)
+
+	// Listen on port 3000
+	http.ListenAndServe(":3000", adaptor.FiberApp(app))
 }
 
 func greet(c *fiber.Ctx) {
