@@ -78,3 +78,48 @@ func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 		_, _ = w.Write(ctx.Fasthttp.Response.Body())
 	})
 }
+
+// FiberApp wraps fiber app to net/http handler func
+func FiberApp(app *fiber.App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// New fasthttp request
+		req := fasthttp.AcquireRequest()
+		defer fasthttp.ReleaseRequest(req)
+		// Convert net/http -> fasthttp request
+		if r.Body != nil {
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				http.Error(w, utils.StatusMessage(fiber.StatusInternalServerError), fiber.StatusInternalServerError)
+				return
+			}
+			req.Header.SetContentLength(len(body))
+			_, _ = req.BodyWriter().Write(body)
+		}
+		req.Header.SetMethod(r.Method)
+		req.SetRequestURI(r.RequestURI)
+		req.SetHost(r.Host)
+		for key, val := range r.Header {
+			for _, v := range val {
+				req.Header.Add(key, v)
+			}
+		}
+		remoteAddr, err := net.ResolveTCPAddr("tcp", r.RemoteAddr)
+		if err != nil {
+			http.Error(w, utils.StatusMessage(fiber.StatusInternalServerError), fiber.StatusInternalServerError)
+			return
+		}
+
+		// New fasthttp Ctx
+		var fctx fasthttp.RequestCtx
+		fctx.Init(req, remoteAddr, nil)
+		// Execute fasthttp Ctx
+		app.Handler()(&fctx)
+
+		// Convert fasthttp Ctx > net/http
+		fctx.Response.Header.VisitAll(func(k, v []byte) {
+			w.Header().Set(string(k), string(v))
+		})
+		w.WriteHeader(fctx.Response.StatusCode())
+		_, _ = w.Write(fctx.Response.Body())
+	}
+}
