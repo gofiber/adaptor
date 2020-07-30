@@ -98,7 +98,7 @@ func Test_HTTPHandler(t *testing.T) {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "request body is %q", body)
 	}
-	fiberH := HTTPHandler(http.HandlerFunc(nethttpH))
+	fiberH := HTTPHandlerFunc(nethttpH)
 	fiberH = setFiberContextValueMiddleware(fiberH, expectedContextKey, expectedContextValue)
 
 	var fctx fasthttp.RequestCtx
@@ -144,7 +144,7 @@ func Test_HTTPHandler(t *testing.T) {
 	}
 }
 
-func Test_FiberHandlerFunc(t *testing.T) {
+func Test_FiberHandler(t *testing.T) {
 	expectedMethod := fiber.MethodPost
 	expectedRequestURI := "/foo/bar?baz=123"
 	expectedBody := "body 123 foo bar baz"
@@ -201,7 +201,7 @@ func Test_FiberHandlerFunc(t *testing.T) {
 		c.Status(fiber.StatusBadRequest)
 		c.Write(fmt.Sprintf("request body is %q", body))
 	}
-	nethttpH := FiberHandlerFunc(fiberH)
+	nethttpH := FiberHandler(fiberH)
 
 	var r http.Request
 
@@ -231,6 +231,43 @@ func Test_FiberHandlerFunc(t *testing.T) {
 		t.Fatalf("unexpected header value: %q. Expecting %q", w.Header().Get("Header2"), "value2")
 	}
 	expectedResponseBody := fmt.Sprintf("request body is %q", expectedBody)
+	if string(w.body) != expectedResponseBody {
+		t.Fatalf("unexpected response body %q. Expecting %q", string(w.body), expectedResponseBody)
+	}
+}
+
+func Test_FiberHandler_RequestNilBody(t *testing.T) {
+	expectedMethod := fiber.MethodGet
+	expectedRequestURI := "/foo/bar"
+	expectedContentLength := 0
+
+	callsCount := 0
+	fiberH := func(c *fiber.Ctx) {
+		callsCount++
+		if c.Method() != expectedMethod {
+			t.Fatalf("unexpected method %q. Expecting %q", c.Method(), expectedMethod)
+		}
+		if string(c.Fasthttp.RequestURI()) != expectedRequestURI {
+			t.Fatalf("unexpected requestURI %q. Expecting %q", string(c.Fasthttp.RequestURI()), expectedRequestURI)
+		}
+		contentLength := c.Fasthttp.Request.Header.ContentLength()
+		if contentLength != expectedContentLength {
+			t.Fatalf("unexpected contentLength %d. Expecting %d", contentLength, expectedContentLength)
+		}
+
+		c.Write("request body is nil")
+	}
+	nethttpH := FiberHandler(fiberH)
+
+	var r http.Request
+
+	r.Method = expectedMethod
+	r.RequestURI = expectedRequestURI
+
+	var w netHTTPResponseWriter
+	nethttpH.ServeHTTP(&w, &r)
+
+	expectedResponseBody := "request body is nil"
 	if string(w.body) != expectedResponseBody {
 		t.Fatalf("unexpected response body %q. Expecting %q", string(w.body), expectedResponseBody)
 	}

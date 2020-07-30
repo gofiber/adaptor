@@ -36,26 +36,28 @@ func FiberHandler(h func(*fiber.Ctx)) http.Handler {
 // FiberHandlerFunc wraps fiber handler to net/http handler func
 func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 	app := fiber.New()
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// New fasthttp request
 		req := fasthttp.AcquireRequest()
 		defer fasthttp.ReleaseRequest(req)
 		// Convert net/http -> fasthttp request
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, utils.StatusMessage(fiber.StatusInternalServerError), fiber.StatusInternalServerError)
-			return
+		if r.Body != nil {
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				http.Error(w, utils.StatusMessage(fiber.StatusInternalServerError), fiber.StatusInternalServerError)
+				return
+			}
+			req.Header.SetContentLength(len(body))
+			_, _ = req.BodyWriter().Write(body)
 		}
 		req.Header.SetMethod(r.Method)
 		req.SetRequestURI(r.RequestURI)
-		req.Header.SetContentLength(len(body))
 		req.SetHost(r.Host)
 		for key, val := range r.Header {
 			for _, v := range val {
 				req.Header.Add(key, v)
 			}
 		}
-		_, _ = req.BodyWriter().Write(body)
 		remoteAddr, err := net.ResolveTCPAddr("tcp", r.RemoteAddr)
 		if err != nil {
 			http.Error(w, utils.StatusMessage(fiber.StatusInternalServerError), fiber.StatusInternalServerError)
@@ -76,5 +78,5 @@ func FiberHandlerFunc(h func(*fiber.Ctx)) http.HandlerFunc {
 		})
 		w.WriteHeader(ctx.Fasthttp.Response.StatusCode())
 		_, _ = w.Write(ctx.Fasthttp.Response.Body())
-	})
+	}
 }
