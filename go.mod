@@ -1,4 +1,4 @@
-module github.com/gofiber/adaptor
+module github.com/gofiber/adaptor/v2
 
 go 1.11
 
