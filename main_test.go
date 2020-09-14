@@ -14,7 +14,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"github.com/valyala/fasthttp"
 )
 
@@ -170,26 +170,26 @@ func testFiberToHandlerFunc(t *testing.T, app ...*fiber.App) {
 	}
 
 	callsCount := 0
-	fiberH := func(c *fiber.Ctx) {
+	fiberH := func(c *fiber.Ctx) error {
 		callsCount++
 		if c.Method() != expectedMethod {
 			t.Fatalf("unexpected method %q. Expecting %q", c.Method(), expectedMethod)
 		}
-		if string(c.Fasthttp.RequestURI()) != expectedRequestURI {
-			t.Fatalf("unexpected requestURI %q. Expecting %q", string(c.Fasthttp.RequestURI()), expectedRequestURI)
+		if string(c.Context().RequestURI()) != expectedRequestURI {
+			t.Fatalf("unexpected requestURI %q. Expecting %q", string(c.Context().RequestURI()), expectedRequestURI)
 		}
-		contentLength := c.Fasthttp.Request.Header.ContentLength()
+		contentLength := c.Context().Request.Header.ContentLength()
 		if contentLength != expectedContentLength {
 			t.Fatalf("unexpected contentLength %d. Expecting %d", contentLength, expectedContentLength)
 		}
 		if c.Hostname() != expectedHost {
 			t.Fatalf("unexpected host %q. Expecting %q", c.Hostname(), expectedHost)
 		}
-		remoteAddr := c.Fasthttp.RemoteAddr().String()
+		remoteAddr := c.Context().RemoteAddr().String()
 		if remoteAddr != expectedRemoteAddr {
 			t.Fatalf("unexpected remoteAddr %q. Expecting %q", remoteAddr, expectedRemoteAddr)
 		}
-		body := c.Body()
+		body := string(c.Body())
 		if body != expectedBody {
 			t.Fatalf("unexpected body %q. Expecting %q", body, expectedBody)
 		}
@@ -207,7 +207,8 @@ func testFiberToHandlerFunc(t *testing.T, app ...*fiber.App) {
 		c.Set("Header1", "value1")
 		c.Set("Header2", "value2")
 		c.Status(fiber.StatusBadRequest)
-		c.Write(fmt.Sprintf("request body is %q", body))
+		_, err := c.Write([]byte(fmt.Sprintf("request body is %q", body)))
+		return err
 	}
 
 	var handlerFunc http.HandlerFunc
@@ -251,10 +252,10 @@ func testFiberToHandlerFunc(t *testing.T, app ...*fiber.App) {
 	}
 }
 
-func setFiberContextValueMiddleware(next func(*fiber.Ctx), key string, value interface{}) func(*fiber.Ctx) {
-	return func(c *fiber.Ctx) {
+func setFiberContextValueMiddleware(next fiber.Handler, key string, value interface{}) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		c.Locals(key, value)
-		next(c)
+		return next(c)
 	}
 }
 
@@ -264,20 +265,21 @@ func Test_FiberHandler_RequestNilBody(t *testing.T) {
 	expectedContentLength := 0
 
 	callsCount := 0
-	fiberH := func(c *fiber.Ctx) {
+	fiberH := func(c *fiber.Ctx) error {
 		callsCount++
 		if c.Method() != expectedMethod {
 			t.Fatalf("unexpected method %q. Expecting %q", c.Method(), expectedMethod)
 		}
-		if string(c.Fasthttp.RequestURI()) != expectedRequestURI {
-			t.Fatalf("unexpected requestURI %q. Expecting %q", string(c.Fasthttp.RequestURI()), expectedRequestURI)
+		if string(c.Request().RequestURI()) != expectedRequestURI {
+			t.Fatalf("unexpected requestURI %q. Expecting %q", string(c.Request().RequestURI()), expectedRequestURI)
 		}
-		contentLength := c.Fasthttp.Request.Header.ContentLength()
+		contentLength := c.Request().Header.ContentLength()
 		if contentLength != expectedContentLength {
 			t.Fatalf("unexpected contentLength %d. Expecting %d", contentLength, expectedContentLength)
 		}
 
-		c.Write("request body is nil")
+		_, err := c.Write([]byte("request body is nil"))
+		return err
 	}
 	nethttpH := FiberHandler(fiberH)
 
