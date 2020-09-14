@@ -9,27 +9,28 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/utils"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
 // HTTPHandlerFunc wraps net/http handler func to fiber handler
-func HTTPHandlerFunc(h http.HandlerFunc) func(*fiber.Ctx) {
+func HTTPHandlerFunc(h http.HandlerFunc) fiber.Handler {
 	return HTTPHandler(h)
 }
 
 // HTTPHandler wraps net/http handler to fiber handler
-func HTTPHandler(h http.Handler) func(*fiber.Ctx) {
-	return func(c *fiber.Ctx) {
+func HTTPHandler(h http.Handler) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		handler := fasthttpadaptor.NewFastHTTPHandler(h)
-		handler(c.Fasthttp)
+		handler(c.Context())
+		return nil
 	}
 }
 
 // FiberHandler wraps fiber handler to net/http handler
-func FiberHandler(h func(*fiber.Ctx)) http.Handler {
+func FiberHandler(h fiber.Handler) http.Handler {
 	return FiberHandlerFunc(h)
 }
 
@@ -80,7 +81,10 @@ func handlerFunc(app *fiber.App, h ...fiber.Handler) http.HandlerFunc {
 			ctx := app.AcquireCtx(&fctx)
 			defer app.ReleaseCtx(ctx)
 			// Execute fiber Ctx
-			h[0](ctx)
+			err := h[0](ctx)
+			if err != nil {
+				_ = app.Config().ErrorHandler(ctx, err)
+			}
 		} else {
 			// Execute fasthttp Ctx though app.Handler
 			app.Handler()(&fctx)
