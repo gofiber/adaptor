@@ -17,10 +17,11 @@ go get -u github.com/gofiber/adaptor/v2
 ### Functions
 | Name | Signature | Description
 | :--- | :--- | :---
-| HTTPHandler | `HTTPHandler(h http.Handler) fiber.Handler` | http.Handler -> Fiber handler
-| HTTPHandlerFunc | `HTTPHandlerFunc(h http.HandlerFunc) fiber.Handler` | http.HandlerFunc -> Fiber handler
-| FiberHandler | `FiberHandler(h fiber.Handler) http.Handler` | Fiber handler -> http.Handler
-| FiberHandlerFunc | `FiberHandlerFunc(h fiber.Handler) http.HandlerFunc` | Fiber handler -> http.HandlerFunc
+| HTTPHandler | `HTTPHandler(h http.Handler) fiber.Handler` | http.Handler -> fiber.Handler
+| HTTPHandlerFunc | `HTTPHandlerFunc(h http.HandlerFunc) fiber.Handler` | http.HandlerFunc -> fiber.Handler
+| HTTPMiddleware | `HTTPHandlerFunc(mw func(http.Handler) http.Handler) fiber.Handler` | func(http.Handler) http.Handler -> fiber.Handler
+| FiberHandler | `FiberHandler(h fiber.Handler) http.Handler` | fiber.Handler -> http.Handler
+| FiberHandlerFunc | `FiberHandlerFunc(h fiber.Handler) http.HandlerFunc` | fiber.Handler -> http.HandlerFunc
 | FiberApp | `FiberApp(app *fiber.App) http.HandlerFunc` | Fiber app -> http.HandlerFunc
 
 ### net/http to Fiber
