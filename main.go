@@ -29,6 +29,19 @@ func HTTPHandler(h http.Handler) fiber.Handler {
 	}
 }
 
+// HTTPMiddleware wraps net/http middleware to fiber middleware
+func HTTPMiddleware(mw func(http.Handler) http.Handler) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		var next bool
+		nextHandler := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) { next = true })
+		_ = HTTPHandler(mw(nextHandler))(c)
+		if next {
+			return c.Next()
+		}
+		return nil
+	}
+}
+
 // FiberHandler wraps fiber handler to net/http handler
 func FiberHandler(h fiber.Handler) http.Handler {
 	return FiberHandlerFunc(h)

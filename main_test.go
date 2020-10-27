@@ -144,6 +144,62 @@ func Test_HTTPHandler(t *testing.T) {
 	}
 }
 
+func Test_HTTPMiddleware(t *testing.T) {
+
+	tests := []struct {
+		name       string
+		url        string
+		method     string
+		statusCode int
+	}{
+		{
+			name:       "Should return 200",
+			url:        "/",
+			method:     "POST",
+			statusCode: 200,
+		},
+		{
+			name:       "Should return 405",
+			url:        "/",
+			method:     "GET",
+			statusCode: 405,
+		},
+		{
+			name:       "Should return 400",
+			url:        "/unknown",
+			method:     "POST",
+			statusCode: 404,
+		},
+	}
+
+	nethttpMW := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodPost {
+				w.WriteHeader(http.StatusMethodNotAllowed)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+
+	app := fiber.New()
+	app.Use(HTTPMiddleware(nethttpMW))
+	app.Post("/", func(c *fiber.Ctx) error {
+		return c.SendStatus(fiber.StatusOK)
+	})
+
+	for _, tt := range tests {
+		req, _ := http.NewRequest(tt.method, tt.url, nil)
+		resp, err := app.Test(req)
+		if err != nil {
+			t.Fatalf(`%s: %s`, t.Name(), err)
+		}
+		if resp.StatusCode != tt.statusCode {
+			t.Fatalf(`%s: StatusCode: got %v - expected %v`, t.Name(), resp.StatusCode, tt.statusCode)
+		}
+	}
+}
+
 func Test_FiberHandler(t *testing.T) {
 	testFiberToHandlerFunc(t)
 }
