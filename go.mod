@@ -4,6 +4,6 @@ go 1.14
 
 require (
 	github.com/gofiber/fiber/v2 v2.1.2
-	github.com/gofiber/utils v0.0.10
+	github.com/gofiber/utils v0.1.0
 	github.com/valyala/fasthttp v1.16.0
 )
