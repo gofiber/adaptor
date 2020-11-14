@@ -80,6 +80,9 @@ func handlerFunc(app *fiber.App, h ...fiber.Handler) http.HandlerFunc {
 				req.Header.Add(key, v)
 			}
 		}
+		if _, _, err := net.SplitHostPort(r.RemoteAddr); err != nil && err.(*net.AddrError).Err == "missing port in address" {
+			r.RemoteAddr = net.JoinHostPort(r.RemoteAddr, "80")
+		}
 		remoteAddr, err := net.ResolveTCPAddr("tcp", r.RemoteAddr)
 		if err != nil {
 			http.Error(w, utils.StatusMessage(fiber.StatusInternalServerError), fiber.StatusInternalServerError)
