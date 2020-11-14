@@ -201,20 +201,31 @@ func Test_HTTPMiddleware(t *testing.T) {
 }
 
 func Test_FiberHandler(t *testing.T) {
-	testFiberToHandlerFunc(t)
+	testFiberToHandlerFunc(t, false)
 }
 
 func Test_FiberApp(t *testing.T) {
-	testFiberToHandlerFunc(t, fiber.New())
+	testFiberToHandlerFunc(t, false, fiber.New())
 }
 
-func testFiberToHandlerFunc(t *testing.T, app ...*fiber.App) {
+func Test_FiberHandlerDefaultPort(t *testing.T) {
+	testFiberToHandlerFunc(t, true)
+}
+
+func Test_FiberAppDefaultPort(t *testing.T) {
+	testFiberToHandlerFunc(t, true, fiber.New())
+}
+
+func testFiberToHandlerFunc(t *testing.T, checkDefaultPort bool, app ...*fiber.App) {
 	expectedMethod := fiber.MethodPost
 	expectedRequestURI := "/foo/bar?baz=123"
 	expectedBody := "body 123 foo bar baz"
 	expectedContentLength := len(expectedBody)
 	expectedHost := "foobar.com"
 	expectedRemoteAddr := "1.2.3.4:6789"
+	if checkDefaultPort {
+		expectedRemoteAddr = "1.2.3.4:80"
+	}
 	expectedHeader := map[string]string{
 		"Foo-Bar":         "baz",
 		"Abc":             "defg",
@@ -283,6 +294,9 @@ func testFiberToHandlerFunc(t *testing.T, app ...*fiber.App) {
 	r.ContentLength = int64(expectedContentLength)
 	r.Host = expectedHost
 	r.RemoteAddr = expectedRemoteAddr
+	if checkDefaultPort {
+		r.RemoteAddr = "1.2.3.4"
+	}
 
 	hdr := make(http.Header)
 	for k, v := range expectedHeader {
