@@ -77,7 +77,7 @@ func handlerFunc(app *fiber.App, h ...fiber.Handler) http.HandlerFunc {
 		req.SetHost(r.Host)
 		for key, val := range r.Header {
 			for _, v := range val {
-				req.Header.Add(key, v)
+				req.Header.Set(key, v)
 			}
 		}
 		if _, _, err := net.SplitHostPort(r.RemoteAddr); err != nil && err.(*net.AddrError).Err == "missing port in address" {
