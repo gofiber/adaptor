@@ -33,7 +33,18 @@ func HTTPHandler(h http.Handler) fiber.Handler {
 func HTTPMiddleware(mw func(http.Handler) http.Handler) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var next bool
-		nextHandler := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) { next = true })
+		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			next = true
+			// Convert again in case request may modify by middleware
+			c.Request().Header.SetMethod(r.Method)
+			c.Request().SetRequestURI(r.RequestURI)
+			c.Request().SetHost(r.Host)
+			for key, val := range r.Header {
+				for _, v := range val {
+					c.Request().Header.Set(key, v)
+				}
+			}
+		})
 		_ = HTTPHandler(mw(nextHandler))(c)
 		if next {
 			return c.Next()
