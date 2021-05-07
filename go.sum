@@ -1,7 +1,7 @@
 github.com/andybalholm/brotli v1.0.1 h1:KqhlKozYbRtJvsPrrEeXcO+N2l6NYT5A2QAFmSULpEc=
 github.com/andybalholm/brotli v1.0.1/go.mod h1:loMXtMfwqflxFJPmdbJO0a3KNoPuLBgiu3qAvBg8x/Y=
-github.com/gofiber/fiber/v2 v2.8.0 h1:BdWvZmg/WY/Vjtjm38aXOp1Lks1BhuyS2b7lSWSPAzk=
-github.com/gofiber/fiber/v2 v2.8.0/go.mod h1:Ah3IJikrKNRepl/HuVawppS25X7FWohwfCSRn7kJG28=
+github.com/gofiber/fiber/v2 v2.9.0 h1:sZsTKlbyGGZ0UdTUn3ItQv5J9FTQUc4J3OS+03lE5m0=
+github.com/gofiber/fiber/v2 v2.9.0/go.mod h1:Ah3IJikrKNRepl/HuVawppS25X7FWohwfCSRn7kJG28=
 github.com/gofiber/utils v0.1.2 h1:1SH2YEz4RlNS0tJlMJ0bGwO0JkqPqvq6TbHK9tXZKtk=
 github.com/gofiber/utils v0.1.2/go.mod h1:pacRFtghAE3UoknMOUiXh2Io/nLWSUHtQCi/3QASsOc=
 github.com/klauspost/compress v1.11.8/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYsUV+/s2qKfXs=
