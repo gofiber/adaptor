@@ -5,6 +5,7 @@
 package adaptor
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -176,6 +177,8 @@ func Test_HTTPMiddleware(t *testing.T) {
 				w.WriteHeader(http.StatusMethodNotAllowed)
 				return
 			}
+			r = r.WithContext(context.WithValue(r.Context(), "context_okay", "okay"))
+
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -183,7 +186,9 @@ func Test_HTTPMiddleware(t *testing.T) {
 	app := fiber.New()
 	app.Use(HTTPMiddleware(nethttpMW))
 	app.Post("/", func(c *fiber.Ctx) error {
-		return c.SendStatus(fiber.StatusOK)
+		value := c.Context().Value("context_okay")
+		c.Set("context_okay", value.(string))
+		return c.SendStatus(200)
 	})
 
 	for _, tt := range tests {
@@ -195,6 +200,15 @@ func Test_HTTPMiddleware(t *testing.T) {
 		if resp.StatusCode != tt.statusCode {
 			t.Fatalf(`%s: StatusCode: got %v - expected %v`, t.Name(), resp.StatusCode, tt.statusCode)
 		}
+	}
+
+	req, _ := http.NewRequest("POST", "/", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf(`%s: %s`, t.Name(), err)
+	}
+	if string(resp.Header.Get("context_okay")) != "okay" {
+		t.Fatalf(`%s: Header context_okay: got %v - expected %v`, t.Name(), resp.Header.Get("context_okay"), "okay")
 	}
 }
 

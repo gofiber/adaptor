@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"reflect"
+	"unsafe"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
@@ -30,7 +32,7 @@ func HTTPHandler(h http.Handler) fiber.Handler {
 }
 
 // HTTPMiddleware wraps net/http middleware to fiber middleware
-func HTTPMiddleware(mw func(http.Handler) http.Handler, contextKeys ...interface{}) fiber.Handler {
+func HTTPMiddleware(mw func(http.Handler) http.Handler) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var next bool
 		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -44,8 +46,27 @@ func HTTPMiddleware(mw func(http.Handler) http.Handler, contextKeys ...interface
 					c.Request().Header.Set(key, v)
 				}
 			}
-			for _, k := range contextKeys {
-				c.Context().SetUserValue(k, r.Context().Value(k))
+			context := r.Context()
+			contextValues := reflect.ValueOf(context).Elem()
+			contextKeys := reflect.TypeOf(context).Elem()
+
+			var lastKey interface{}
+
+			if contextKeys.Kind() == reflect.Struct {
+				for i := 0; i < contextValues.NumField(); i++ {
+					reflectValue := contextValues.Field(i)
+					reflectValue = reflect.NewAt(reflectValue.Type(), unsafe.Pointer(reflectValue.UnsafeAddr())).Elem()
+
+					reflectField := contextKeys.Field(i)
+
+					if reflectField.Name == "key" {
+						lastKey = reflectValue.Interface()
+					} else if lastKey != nil && reflectField.Name == "val" {
+						c.Context().SetUserValue(lastKey, reflectValue.Interface())
+					} else {
+						lastKey = nil
+					}
+				}
 			}
 		})
 		_ = HTTPHandler(mw(nextHandler))(c)
