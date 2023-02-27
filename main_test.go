@@ -143,6 +143,16 @@ func Test_HTTPHandler(t *testing.T) {
 	}
 }
 
+type contextKey string
+
+func (c contextKey) String() string {
+	return "test-" + string(c)
+}
+
+var (
+	TestContextKey = contextKey("TestContextKey")
+)
+
 func Test_HTTPMiddleware(t *testing.T) {
 
 	tests := []struct {
@@ -177,7 +187,7 @@ func Test_HTTPMiddleware(t *testing.T) {
 				w.WriteHeader(http.StatusMethodNotAllowed)
 				return
 			}
-			r = r.WithContext(context.WithValue(r.Context(), "context_okay", "okay"))
+			r = r.WithContext(context.WithValue(r.Context(), TestContextKey, "okay"))
 
 			next.ServeHTTP(w, r)
 		})
@@ -186,7 +196,7 @@ func Test_HTTPMiddleware(t *testing.T) {
 	app := fiber.New()
 	app.Use(HTTPMiddleware(nethttpMW))
 	app.Post("/", func(c *fiber.Ctx) error {
-		value := c.Context().Value("context_okay")
+		value := c.Context().Value(TestContextKey)
 		c.Set("context_okay", value.(string))
 		return c.SendStatus(200)
 	})
