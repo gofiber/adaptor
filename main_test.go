@@ -198,7 +198,7 @@ func Test_HTTPMiddleware(t *testing.T) {
 	app.Post("/", func(c *fiber.Ctx) error {
 		value := c.Context().Value(TestContextKey)
 		c.Set("context_okay", value.(string))
-		return c.SendStatus(200)
+		return c.SendStatus(fiber.StatusOK)
 	})
 
 	for _, tt := range tests {
