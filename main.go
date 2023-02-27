@@ -30,7 +30,7 @@ func HTTPHandler(h http.Handler) fiber.Handler {
 }
 
 // HTTPMiddleware wraps net/http middleware to fiber middleware
-func HTTPMiddleware(mw func(http.Handler) http.Handler) fiber.Handler {
+func HTTPMiddleware(mw func(http.Handler) http.Handler, contextKeys ...interface{}) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var next bool
 		nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +43,9 @@ func HTTPMiddleware(mw func(http.Handler) http.Handler) fiber.Handler {
 				for _, v := range val {
 					c.Request().Header.Set(key, v)
 				}
+			}
+			for _, k := range contextKeys {
+				c.Context().SetUserValue(k, r.Context().Value(k))
 			}
 		})
 		_ = HTTPHandler(mw(nextHandler))(c)
