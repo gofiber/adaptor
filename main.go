@@ -31,6 +31,32 @@ func HTTPHandler(h http.Handler) fiber.Handler {
 	}
 }
 
+func CopyContextToFiberContext(context interface{}, requestContext *fasthttp.RequestCtx) {
+	contextValues := reflect.ValueOf(context).Elem()
+	contextKeys := reflect.TypeOf(context).Elem()
+	if contextKeys.Kind() == reflect.Struct {
+		var lastKey interface{}
+		for i := 0; i < contextValues.NumField(); i++ {
+			reflectValue := contextValues.Field(i)
+			reflectValue = reflect.NewAt(reflectValue.Type(), unsafe.Pointer(reflectValue.UnsafeAddr())).Elem()
+
+			reflectField := contextKeys.Field(i)
+
+			if reflectField.Name == "Context" {
+				CopyContextToFiberContext(reflectValue.Interface(), requestContext)
+			} else if reflectField.Name == "noCopy" {
+				break
+			} else if reflectField.Name == "key" {
+				lastKey = reflectValue.Interface()
+			} else if lastKey != nil && reflectField.Name == "val" {
+				requestContext.SetUserValue(lastKey, reflectValue.Interface())
+			} else {
+				lastKey = nil
+			}
+		}
+	}
+}
+
 // HTTPMiddleware wraps net/http middleware to fiber middleware
 func HTTPMiddleware(mw func(http.Handler) http.Handler) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -46,28 +72,7 @@ func HTTPMiddleware(mw func(http.Handler) http.Handler) fiber.Handler {
 					c.Request().Header.Set(key, v)
 				}
 			}
-			context := r.Context()
-			contextValues := reflect.ValueOf(context).Elem()
-			contextKeys := reflect.TypeOf(context).Elem()
-
-			var lastKey interface{}
-
-			if contextKeys.Kind() == reflect.Struct {
-				for i := 0; i < contextValues.NumField(); i++ {
-					reflectValue := contextValues.Field(i)
-					reflectValue = reflect.NewAt(reflectValue.Type(), unsafe.Pointer(reflectValue.UnsafeAddr())).Elem()
-
-					reflectField := contextKeys.Field(i)
-
-					if reflectField.Name == "key" {
-						lastKey = reflectValue.Interface()
-					} else if lastKey != nil && reflectField.Name == "val" {
-						c.Context().SetUserValue(lastKey, reflectValue.Interface())
-					} else {
-						lastKey = nil
-					}
-				}
-			}
+			CopyContextToFiberContext(r.Context(), c.Context())
 		})
 		_ = HTTPHandler(mw(nextHandler))(c)
 		if next {

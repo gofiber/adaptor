@@ -150,7 +150,8 @@ func (c contextKey) String() string {
 }
 
 var (
-	TestContextKey = contextKey("TestContextKey")
+	TestContextKey       = contextKey("TestContextKey")
+	TestContextSecondKey = contextKey("TestContextSecondKey")
 )
 
 func Test_HTTPMiddleware(t *testing.T) {
@@ -188,6 +189,7 @@ func Test_HTTPMiddleware(t *testing.T) {
 				return
 			}
 			r = r.WithContext(context.WithValue(r.Context(), TestContextKey, "okay"))
+			r = r.WithContext(context.WithValue(r.Context(), TestContextSecondKey, "okay"))
 
 			next.ServeHTTP(w, r)
 		})
@@ -197,7 +199,13 @@ func Test_HTTPMiddleware(t *testing.T) {
 	app.Use(HTTPMiddleware(nethttpMW))
 	app.Post("/", func(c *fiber.Ctx) error {
 		value := c.Context().Value(TestContextKey)
-		c.Set("context_okay", value.(string))
+		if value != nil {
+			c.Set("context_okay", value.(string))
+		}
+		value = c.Context().Value(TestContextSecondKey)
+		if value != nil {
+			c.Set("context_second_okay", value.(string))
+		}
 		return c.SendStatus(fiber.StatusOK)
 	})
 
@@ -219,6 +227,9 @@ func Test_HTTPMiddleware(t *testing.T) {
 	}
 	if string(resp.Header.Get("context_okay")) != "okay" {
 		t.Fatalf(`%s: Header context_okay: got %v - expected %v`, t.Name(), resp.Header.Get("context_okay"), "okay")
+	}
+	if string(resp.Header.Get("context_second_okay")) != "okay" {
+		t.Fatalf(`%s: Header context_second_okay: got %v - expected %v`, t.Name(), resp.Header.Get("context_second_okay"), "okay")
 	}
 }
 
