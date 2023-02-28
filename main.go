@@ -43,10 +43,10 @@ func CopyContextToFiberContext(context interface{}, requestContext *fasthttp.Req
 
 			reflectField := contextKeys.Field(i)
 
-			if reflectField.Name == "Context" {
-				CopyContextToFiberContext(reflectValue.Interface(), requestContext)
-			} else if reflectField.Name == "noCopy" {
+			if reflectField.Name == "noCopy" {
 				break
+			} else if reflectField.Name == "Context" {
+				CopyContextToFiberContext(reflectValue.Interface(), requestContext)
 			} else if reflectField.Name == "key" {
 				lastKey = reflectValue.Interface()
 			} else if lastKey != nil && reflectField.Name == "val" {
