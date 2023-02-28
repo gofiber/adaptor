@@ -39,6 +39,7 @@ func CopyContextToFiberContext(context interface{}, requestContext *fasthttp.Req
 		var lastKey interface{}
 		for i := 0; i < contextValues.NumField(); i++ {
 			reflectValue := contextValues.Field(i)
+			/* #nosec */
 			reflectValue = reflect.NewAt(reflectValue.Type(), unsafe.Pointer(reflectValue.UnsafeAddr())).Elem()
 
 			reflectField := contextKeys.Field(i)
