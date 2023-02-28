@@ -189,6 +189,7 @@ func Test_HTTPMiddleware(t *testing.T) {
 				return
 			}
 			r = r.WithContext(context.WithValue(r.Context(), TestContextKey, "okay"))
+			r = r.WithContext(context.WithValue(r.Context(), TestContextSecondKey, "not_okay"))
 			r = r.WithContext(context.WithValue(r.Context(), TestContextSecondKey, "okay"))
 
 			next.ServeHTTP(w, r)
