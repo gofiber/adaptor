@@ -31,6 +31,7 @@ func HTTPHandler(h http.Handler) fiber.Handler {
 	}
 }
 
+// CopyContextToFiberContext copies the values of context.Context to a fasthttp.RequestCtx
 func CopyContextToFiberContext(context interface{}, requestContext *fasthttp.RequestCtx) {
 	contextValues := reflect.ValueOf(context).Elem()
 	contextKeys := reflect.TypeOf(context).Elem()
