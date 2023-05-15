@@ -1,3 +1,5 @@
+// Deprecated: Now part of the fiber core repo:
+// github.com/gofiber/fiber/v2/middleware/adaptor
 module github.com/gofiber/adaptor/v2
 
 go 1.17
